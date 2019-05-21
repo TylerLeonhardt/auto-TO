@@ -6,15 +6,15 @@ var config =
 {
     authentication: {
         options: {
-            userName: 'userName', // update me
-            password: 'password' // update me
+            userName: process.env['user'],
+            password: process.env['pass']
         },
         type: 'default'
     },
-    server: 'your_server.database.windows.net', // update me
+    server: process.env['connection'],
     options:
     {
-        database: 'your_database', //update me
+        database: process.env['databaseName'],
         encrypt: true
     }
 }
