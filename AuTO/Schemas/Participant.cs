@@ -1,11 +1,23 @@
+using AuTO.BsonSchema;
+
 namespace WorldsFirst.Schemas
 {
-    internal class Participant
+    public class Participant
     {
-        internal string ChallongeId { get; set; }
+        public Participant()
+        { }
 
-        internal string PhoneNumber { get; set; }
+        public Participant(ParticipantBson bson)
+        {
+            this.ChallongeId = bson.ChallongeId;
+            this.PhoneNumber = bson.PhoneNumber;
+            this.Name = bson.Name;
+        }
 
-        internal string Name { get; set; }
+        public string ChallongeId { get; set; }
+
+        public string PhoneNumber { get; set; }
+
+        public string Name { get; set; }
     }
 }

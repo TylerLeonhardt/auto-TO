@@ -13,6 +13,7 @@ namespace IHateNamingThings
     using Twilio.Rest.Api.V2010.Account;
     using Twilio.TwiML;
     using Twilio.Types;
+    using WorldsFirst.Schemas;
 
     public class IHateNamingThings
     {
@@ -68,13 +69,16 @@ namespace IHateNamingThings
                 to: nextPlayer1);
 
             TwilioClient.Invalidate();
-
             // lookup the bracket
 
             string tourneyId = Environment.GetEnvironmentVariable("ChallongeTournamentId");
             string apiKey = Environment.GetEnvironmentVariable("ChallongeApiKey");
             TourneyDal tourneyDal = new TourneyDal(apiKey, tourneyId);
+            MongoDal mongoDal = new MongoDal();
 
+            Participant player = await mongoDal.GetParticipantByPhoneNumber("");
+
+            
             // get the sender's game
             
             // assume sender won
@@ -84,12 +88,12 @@ namespace IHateNamingThings
             // send other player to loser parent
             // update database
             // Perform calculations, API lookups, etc. here
-
+            
             var congrats = new MessagingResponse()
                 .Message($"Congrats on winning!  You sent {formValues["Body"]}");
             var congratsTwiml = congrats.ToString();
             congratsTwiml = congratsTwiml.Replace("utf-16", "utf-8");
-
+            
             return new HttpResponseMessage
             {
                 Content = new StringContent(congratsTwiml.ToString(), Encoding.UTF8, "application/xml")
