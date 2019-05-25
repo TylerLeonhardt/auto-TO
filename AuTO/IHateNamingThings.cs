@@ -34,7 +34,7 @@ namespace WorldsFirst
                 .ToDictionary(pair => Uri.UnescapeDataString(pair[0]).Replace("+", " "),
                               pair => Uri.UnescapeDataString(pair[1]).Replace("+", " "));
 
-            string senderNumber = formValues["From"];
+            string senderNumber = "+" + formValues["From"].Substring(1);
 
             // Isabela-proofing
             string authorized = Environment.GetEnvironmentVariable("nextPlayer1");
@@ -70,7 +70,7 @@ namespace WorldsFirst
             JObject senderGame = (JObject)openGamesForSender.Single();
 
             // assume sender won
-            await tourneyDal.UpdateWinnerAsync(senderGame["id"].Value<string>(), senderParticipant.ChallongeId, "2-0");
+            await tourneyDal.UpdateWinnerAsync(senderGame["match"]["id"].Value<string>(), senderParticipant.ChallongeId, "2-0");
 
             // get matches that have been notified before
             Matches matches = await GetSentMatchesAsync();
@@ -78,13 +78,12 @@ namespace WorldsFirst
 
             // get open matches to choose the next one to play
             JArray openGames = await tourneyDal.GetOpenMatchesAsync();
-
-            IList<JToken> sortedOpenMatches = openGames.OrderBy(openGame => openGame["suggested_play_order"].Value<int>()).ToList();
-            IList<JToken> sortedNonMessagedMatches = sortedOpenMatches.Where(match => !playedMatchIds.Contains(match["id"].Value<string>())).ToList();
+            IList<JToken> sortedOpenMatches = openGames.OrderBy(openGame => openGame["match"]["suggested_play_order"].Value<int>()).ToList();
+            IList<JToken> sortedNonMessagedMatches = sortedOpenMatches.Where(match => !playedMatchIds.Contains(match["match"]["id"].Value<string>())).ToList();
             JObject nextMatch = (JObject)sortedNonMessagedMatches.First();
 
-            Participant player1 = await mongoDal.GetParticipantByChallongeId(nextMatch["player1_id"].Value<string>());
-            Participant player2 = await mongoDal.GetParticipantByChallongeId(nextMatch["player2_id"].Value<string>());
+            Participant player1 = await mongoDal.GetParticipantByChallongeId(nextMatch["match"]["player1_id"].Value<string>());
+            Participant player2 = await mongoDal.GetParticipantByChallongeId(nextMatch["match"]["player2_id"].Value<string>());
 
             // test next players
             var nextPlayer1 = new PhoneNumber(player1.PhoneNumber);
