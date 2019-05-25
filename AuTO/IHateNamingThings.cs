@@ -78,6 +78,7 @@ namespace IHateNamingThings
 
             Participant player = await mongoDal.GetParticipantByPhoneNumber("");
 
+            Matches matches = await mongoDal.GetMatchesAsync();
             
             // get the sender's game
             
