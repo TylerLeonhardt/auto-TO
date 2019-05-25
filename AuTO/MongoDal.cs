@@ -27,7 +27,7 @@ namespace WorldsFirst
             matchesCollection = db.GetCollection<MatchListBson>("MessagedMatches");
         }
 
-        public async Task<Participant> GetParticipantByPhoneNumber(string phoneNumber)
+        public async Task<Participant> GetParticipantByPhoneNumberAsync(string phoneNumber)
         {
             var filter = Builders<ParticipantBson>.Filter.Eq("phoneNumber", phoneNumber);
             var result = await participantCollection.Find(filter).ToListAsync();
@@ -37,7 +37,7 @@ namespace WorldsFirst
             return new Participant(bson);
         }
 
-        public async Task<Participant> GetParticipantByChallongeId(string challongeId)
+        public async Task<Participant> GetParticipantByChallongeIdAsync(string challongeId)
         {
             var filter = Builders<ParticipantBson>.Filter.Eq("challongeId", challongeId);
             var result = await participantCollection.Find(filter).ToListAsync();
@@ -53,7 +53,7 @@ namespace WorldsFirst
             return new Matches(result.FirstOrDefault());
         }
 
-        public async Task UpdateMatchList(Matches matches, string newMatchId)
+        public async Task UpdateMatchListAsync(Matches matches, string newMatchId)
         {
             List<string> newMatchList = matches.MatchIds;
             newMatchList.Add(newMatchId);

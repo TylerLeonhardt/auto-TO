@@ -63,7 +63,7 @@ namespace WorldsFirst
             TourneyDal tourneyDal = new TourneyDal(apiKey, tourneyId);
             MongoDal mongoDal = new MongoDal();
 
-            Participant senderParticipant = await mongoDal.GetParticipantByPhoneNumber(senderNumber);
+            Participant senderParticipant = await mongoDal.GetParticipantByPhoneNumberAsync(senderNumber);
 
             // get the sender's game
             JArray openGamesForSender = await tourneyDal.GetOpenMatchByIdAsync(senderParticipant.ChallongeId);
@@ -73,7 +73,7 @@ namespace WorldsFirst
             await tourneyDal.UpdateWinnerAsync(senderGame["match"]["id"].Value<string>(), senderParticipant.ChallongeId, "2-0");
 
             // get matches that have been notified before
-            Matches matches = await GetSentMatchesAsync();
+            Matches matches = await mongoDal.GetMatchesAsync();
             var playedMatchIds = new HashSet<string> (matches.MatchIds, StringComparer.OrdinalIgnoreCase);
 
             // get open matches to choose the next one to play
@@ -82,8 +82,8 @@ namespace WorldsFirst
             IList<JToken> sortedNonMessagedMatches = sortedOpenMatches.Where(match => !playedMatchIds.Contains(match["match"]["id"].Value<string>())).ToList();
             JObject nextMatch = (JObject)sortedNonMessagedMatches.First();
 
-            Participant player1 = await mongoDal.GetParticipantByChallongeId(nextMatch["match"]["player1_id"].Value<string>());
-            Participant player2 = await mongoDal.GetParticipantByChallongeId(nextMatch["match"]["player2_id"].Value<string>());
+            Participant player1 = await mongoDal.GetParticipantByChallongeIdAsync(nextMatch["match"]["player1_id"].Value<string>());
+            Participant player2 = await mongoDal.GetParticipantByChallongeIdAsync(nextMatch["match"]["player2_id"].Value<string>());
 
             // test next players
             var nextPlayer1 = new PhoneNumber(player1.PhoneNumber);
@@ -104,11 +104,10 @@ namespace WorldsFirst
             TwilioClient.Invalidate();
 
             // update database
-            matches.MatchIds.Add(nextMatch["id"].Value<string>());
-            await WriteMatchesAsync(matches); 
+            await mongoDal.UpdateMatchListAsync(matches, nextMatch["match"]["id"].Value<string>());
 
             // Perform calculations, API lookups, etc. here
-            
+
             var congrats = new MessagingResponse()
                 .Message($"Congrats on winning!  You sent {formValues["Body"]}");
             var congratsTwiml = congrats.ToString();
@@ -118,18 +117,6 @@ namespace WorldsFirst
             {
                 Content = new StringContent(congratsTwiml.ToString(), Encoding.UTF8, "application/xml")
             };
-        }
-
-        static Task WriteMatchesAsync(Matches matches)
-        {
-            return Task.FromResult(0);
-        }
-
-        static Task<Matches> GetSentMatchesAsync()
-        {
-            Matches matches = new Matches();
-            matches.MatchIds.Add("161779452");
-            return Task.FromResult(matches);
         }
     }
 }
