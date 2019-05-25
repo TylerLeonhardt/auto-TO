@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using AuTO.BsonSchema;
 using System.Linq;
 
-namespace IHateNamingThings
+namespace WorldsFirst
 {
 
     public class MongoDal
