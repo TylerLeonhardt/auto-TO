@@ -65,3 +65,6 @@ typings/
 
 # let's keep my api keys secret
 local.settings.json
+
+# don't phone numbers
+.gitignore
