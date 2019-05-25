@@ -1,11 +1,19 @@
 namespace IHateNamingThings
 {
+    using System.Collections.Generic;
     using System.Net.Http;
+    using System.Net.Http.Formatting;
     using System.Threading.Tasks;
+    using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
 
     class TourneyDal
     {
+        static readonly IList<MediaTypeFormatter> Formatters = new[]
+        {
+            new JsonMediaTypeFormatter()
+        };
+
         readonly string apiKey;
         readonly HttpClient client;
         readonly string tourneyId;
@@ -16,6 +24,7 @@ namespace IHateNamingThings
             this.tourneyId = tourneyId;
 
             client = new HttpClient();
+            client.DefaultRequestHeaders.Add("Accept", "application/json");
         }
 
         public async Task UpdateWinnerAsync(string matchId, string winnerId, string score)
@@ -27,18 +36,18 @@ namespace IHateNamingThings
 
         public async Task<JObject> GetOpenMatchesAsync()
         {
-            string uri = $"https://api.challonge.com/v1/tournaments/{tourneyId}/matches.json?state=open";
+            string uri = $"https://{apiKey}api.challonge.com/v1/tournaments/{tourneyId}/matches.json?state=open";
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, uri);
             HttpResponseMessage response = await client.SendAsync(request);
-            return await response.Content.ReadAsAsync<JObject>();
+            return await response.Content.ReadAsAsync<JObject>(Formatters);
         }
 
         public async Task<JObject> GetOpenMatchByIdAsync(string playerId)
         {
-            string uri = $"https://api.challonge.com/v1/tournaments/{tourneyId}/matches.json?participant_id={playerId}&state=open";
+            string uri = $"https://{apiKey}api.challonge.com/v1/tournaments/{tourneyId}/matches.json?participant_id={playerId}&state=open";
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, uri);
             HttpResponseMessage response = await client.SendAsync(request);
-            return await response.Content.ReadAsAsync<JObject>();
+            return await response.Content.ReadAsAsync<JObject>(Formatters);
         }
     }
 }
