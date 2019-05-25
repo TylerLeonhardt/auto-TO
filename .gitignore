@@ -67,4 +67,4 @@ typings/
 local.settings.json
 
 # don't phone numbers
-.gitignore
+numbers.txt
