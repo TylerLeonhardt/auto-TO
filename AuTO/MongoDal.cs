@@ -21,7 +21,8 @@ namespace WorldsFirst
 
         public MongoDal()
         {
-            client = new MongoClient("mongodb+srv://idk:idk@cluster0-nz2zj.azure.mongodb.net/WorldsFirstSmash?retryWrites=true");
+            string secret = Environment.GetEnvironmentVariable("mongoClientSecret");
+            client = new MongoClient(secret);
             db = client.GetDatabase("WorldsFirstSmash");
             participantCollection = db.GetCollection<ParticipantBson>("Participants");
             matchesCollection = db.GetCollection<MatchListBson>("MessagedMatches");
