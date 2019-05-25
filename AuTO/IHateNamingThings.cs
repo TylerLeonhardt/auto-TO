@@ -17,7 +17,6 @@ namespace WorldsFirst
     using Twilio.Types;
     using WorldsFirst.Schemas;
 
-
     public class IHateNamingThings
     {
         [FunctionName("HttpTriggerCSharp")]
@@ -39,7 +38,7 @@ namespace WorldsFirst
             if(formValues["Body"].Trim().ToLower() != "i won")
             {
                 var error = new MessagingResponse()
-                    .Message($"DON'T @ ME!!  You sent {formValues["Body"]}.  I only respect 'i won' (no quotes)");
+                    .Message($"DON'T @ ME!!  You sent {formValues["Body"]}.  I only respect 'I won' (no quotes)");
                 var errorTwiml = error.ToString();
                 errorTwiml = errorTwiml.Replace("utf-16", "utf-8");
 
@@ -66,29 +65,40 @@ namespace WorldsFirst
             JArray openGamesForSender = await tourneyDal.GetOpenMatchByIdAsync(senderParticipant.ChallongeId);
             JObject senderGame = (JObject)openGamesForSender.Single();
 
+            string loserId;
+            string orderedScore;
+            if (senderGame["match"]["player1_id"].Value<string>() == senderParticipant.ChallongeId)
+            {
+                loserId = senderGame["match"]["player2_id"].Value<string>();
+                orderedScore = "2-0";
+            }
+            else
+            {
+                loserId = senderGame["match"]["player1_id"].Value<string>();
+                orderedScore = "0-2";
+            }
+
             // get the loser to send them a message
-            string loserId = senderGame["match"]["player1_id"].Value<string>() == senderParticipant.ChallongeId ?
-                senderGame["match"]["player2_id"].Value<string>() :
-                senderGame["match"]["player1_id"].Value<string>();
             Participant loserParticipant = await mongoDal.GetParticipantByChallongeIdAsync(loserId);
 
-            // assume sender won
-            await tourneyDal.UpdateWinnerAsync(senderGame["match"]["id"].Value<string>(), senderParticipant.ChallongeId, "2-0");
+            // assume sender won and update that game
+            await tourneyDal.UpdateWinnerAsync(
+                senderGame["match"]["id"].Value<string>(),
+                senderParticipant.ChallongeId,
+                orderedScore);
 
             // get matches that have been notified before
             Matches matches = await mongoDal.GetMatchesAsync();
-            var playedMatchIds = new HashSet<string> (matches.MatchIds, StringComparer.OrdinalIgnoreCase);
+            var notifiedMatchIds = new HashSet<string> (matches.MatchIds, StringComparer.OrdinalIgnoreCase);
 
-            // get open matches to choose the next one to play
-            JArray openGames = await tourneyDal.GetOpenMatchesAsync();
-            IList<JToken> sortedOpenMatches = openGames.OrderBy(openGame => openGame["match"]["suggested_play_order"].Value<int>()).ToList();
-            IList<JToken> sortedNonMessagedMatches = sortedOpenMatches.Where(match => !playedMatchIds.Contains(match["match"]["id"].Value<string>())).ToList();
-            JObject nextMatch = (JObject)sortedNonMessagedMatches.First();
+            JObject nextMatch = await GetNextMatchToPlayAsync(tourneyDal, notifiedMatchIds);
 
-            Participant player1 = await mongoDal.GetParticipantByChallongeIdAsync(nextMatch["match"]["player1_id"].Value<string>());
-            Participant player2 = await mongoDal.GetParticipantByChallongeIdAsync(nextMatch["match"]["player2_id"].Value<string>());
+            Participant player1 = await mongoDal.GetParticipantByChallongeIdAsync(
+                nextMatch["match"]["player1_id"].Value<string>());
+            Participant player2 = await mongoDal.GetParticipantByChallongeIdAsync(
+                nextMatch["match"]["player2_id"].Value<string>());
 
-            // test next players
+            // text next players
             var nextPlayer1 = new PhoneNumber(player1.PhoneNumber);
             var nextPlayer2 = new PhoneNumber(player2.PhoneNumber);
 
@@ -119,14 +129,22 @@ namespace WorldsFirst
             // update database
             await mongoDal.UpdateMatchListAsync(matches, nextMatch["match"]["id"].Value<string>());
 
-            //var congrats = new MessagingResponse()
-            //    .Message($"Congrats on winning!  You sent {formValues["Body"]}");
-            //var congratsTwiml = congrats.ToString();
-            //congratsTwiml = congratsTwiml.Replace("utf-16", "utf-8");
-            
             return new HttpResponseMessage
             {
             };
+        }
+
+        static async Task<JObject> GetNextMatchToPlayAsync(
+            TourneyDal tourneyDal, HashSet<string> playedMatchIds)
+        {
+            JArray openMatches = await tourneyDal.GetOpenMatchesAsync();
+            IList<JToken> nonMessagedMatches =
+                openMatches.Where(match =>
+                    !playedMatchIds.Contains(match["match"]["id"].Value<string>())).ToList();
+            IList<JToken> sortedNonMessagedMatches =
+                nonMessagedMatches.OrderBy(openMatch =>
+                    openMatch["match"]["suggested_play_order"].Value<int>()).ToList();
+            return (JObject)sortedNonMessagedMatches.First();
         }
     }
 }
