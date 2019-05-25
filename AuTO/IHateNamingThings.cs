@@ -70,8 +70,16 @@ namespace IHateNamingThings
             TwilioClient.Invalidate();
 
             // lookup the bracket
+
+            string tourneyId = Environment.GetEnvironmentVariable("ChallongeTournamentId");
+            string apiKey = Environment.GetEnvironmentVariable("ChallongeApiKey");
+            TourneyDal tourneyDal = new TourneyDal(apiKey, tourneyId);
+
             // get the sender's game
+            
             // assume sender won
+
+
             // send sender to winner parent
             // send other player to loser parent
             // update database
