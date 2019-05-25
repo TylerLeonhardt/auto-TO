@@ -36,13 +36,10 @@ namespace WorldsFirst
 
             string senderNumber = "+" + formValues["From"].Substring(1);
 
-            // Isabela-proofing
-            string authorized = Environment.GetEnvironmentVariable("nextPlayer1");
-
-            if(senderNumber.Substring(1) != authorized.Substring(1))
+            if(formValues["Body"].Trim().ToLower() != "i won")
             {
                 var error = new MessagingResponse()
-                    .Message($"DON'T @ ME!!  You sent {formValues["Body"]}");
+                    .Message($"DON'T @ ME!!  You sent {formValues["Body"]}.  I only respect 'i won' (no quotes)");
                 var errorTwiml = error.ToString();
                 errorTwiml = errorTwiml.Replace("utf-16", "utf-8");
 
@@ -91,6 +88,16 @@ namespace WorldsFirst
 
             TwilioClient.Init(accountId, authToken);
 
+            var congrats = MessageResource.Create(
+                body: $"Congrats on winning! :D",
+                from: myNumber,
+                to: new PhoneNumber(senderNumber));
+
+            var sorry = MessageResource.Create(
+                body: $"Tough match :/",
+                from: myNumber,
+                to: new PhoneNumber(senderNumber));
+
             var p2notification = MessageResource.Create(
                 body: $"You're up now against {player1.Name}. Please go find the open TV.",
                 from: myNumber,
@@ -106,16 +113,13 @@ namespace WorldsFirst
             // update database
             await mongoDal.UpdateMatchListAsync(matches, nextMatch["match"]["id"].Value<string>());
 
-            // Perform calculations, API lookups, etc. here
-
-            var congrats = new MessagingResponse()
-                .Message($"Congrats on winning!  You sent {formValues["Body"]}");
-            var congratsTwiml = congrats.ToString();
-            congratsTwiml = congratsTwiml.Replace("utf-16", "utf-8");
+            //var congrats = new MessagingResponse()
+            //    .Message($"Congrats on winning!  You sent {formValues["Body"]}");
+            //var congratsTwiml = congrats.ToString();
+            //congratsTwiml = congratsTwiml.Replace("utf-16", "utf-8");
             
             return new HttpResponseMessage
             {
-                Content = new StringContent(congratsTwiml.ToString(), Encoding.UTF8, "application/xml")
             };
         }
     }
