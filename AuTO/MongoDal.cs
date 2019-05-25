@@ -9,7 +9,7 @@ using AuTO.BsonSchema;
 using System.Linq;
 using MongoDB.Bson;
 
-namespace IHateNamingThings
+namespace WorldsFirst
 {
 
     public class MongoDal
