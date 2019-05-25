@@ -89,17 +89,16 @@ namespace WorldsFirst
             // test next players
             var nextPlayer1 = new PhoneNumber(player1.PhoneNumber);
             var nextPlayer2 = new PhoneNumber(player2.PhoneNumber);
-            string nextTV = "";
 
             TwilioClient.Init(accountId, authToken);
 
             var p2notification = MessageResource.Create(
-                body: $"You're up next on tv {nextTV} against {player1.Name}",
+                body: $"You're up now against {player1.Name}. Please go find the open TV.",
                 from: myNumber,
                 to: nextPlayer2);
 
             var p1notification = MessageResource.Create(
-                body: $"You're up next on tv {nextTV} against {player2.Name}",
+                body: $"You're up now against {player2.Name}. Please go find the open TV.",
                 from: myNumber,
                 to: nextPlayer1);
 
