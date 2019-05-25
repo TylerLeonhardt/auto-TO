@@ -66,6 +66,12 @@ namespace WorldsFirst
             JArray openGamesForSender = await tourneyDal.GetOpenMatchByIdAsync(senderParticipant.ChallongeId);
             JObject senderGame = (JObject)openGamesForSender.Single();
 
+            // get the loser to send them a message
+            string loserId = senderGame["match"]["player1_id"].Value<string>() == senderParticipant.ChallongeId ?
+                senderGame["match"]["player2_id"].Value<string>() :
+                senderGame["match"]["player1_id"].Value<string>();
+            Participant loserParticipant = await mongoDal.GetParticipantByChallongeIdAsync(loserId);
+
             // assume sender won
             await tourneyDal.UpdateWinnerAsync(senderGame["match"]["id"].Value<string>(), senderParticipant.ChallongeId, "2-0");
 
@@ -96,7 +102,7 @@ namespace WorldsFirst
             var sorry = MessageResource.Create(
                 body: $"Tough match :/",
                 from: myNumber,
-                to: new PhoneNumber(senderNumber));
+                to: new PhoneNumber(loserParticipant.PhoneNumber));
 
             var p2notification = MessageResource.Create(
                 body: $"You're up now against {player1.Name}. Please go find the open TV.",
