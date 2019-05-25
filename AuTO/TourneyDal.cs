@@ -1,4 +1,4 @@
-namespace IHateNamingThings
+namespace WorldsFirst
 {
     using System.Collections.Generic;
     using System.Net.Http;
@@ -34,20 +34,20 @@ namespace IHateNamingThings
             await client.SendAsync(request);
         }
 
-        public async Task<JObject> GetOpenMatchesAsync()
+        public async Task<JArray> GetOpenMatchesAsync()
         {
             string uri = $"https://{apiKey}api.challonge.com/v1/tournaments/{tourneyId}/matches.json?state=open";
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, uri);
             HttpResponseMessage response = await client.SendAsync(request);
-            return await response.Content.ReadAsAsync<JObject>(Formatters);
+            return await response.Content.ReadAsAsync<JArray>(Formatters);
         }
 
-        public async Task<JObject> GetOpenMatchByIdAsync(string playerId)
+        public async Task<JArray> GetOpenMatchByIdAsync(string playerId)
         {
             string uri = $"https://{apiKey}api.challonge.com/v1/tournaments/{tourneyId}/matches.json?participant_id={playerId}&state=open";
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, uri);
             HttpResponseMessage response = await client.SendAsync(request);
-            return await response.Content.ReadAsAsync<JObject>(Formatters);
+            return await response.Content.ReadAsAsync<JArray>(Formatters);
         }
     }
 }
