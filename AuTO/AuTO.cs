@@ -1,23 +1,23 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Extensions.Http;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
+using Twilio;
+using Twilio.Rest.Api.V2010.Account;
+using Twilio.TwiML;
+using Twilio.Types;
+using WorldsFirst.Schemas;
+
 namespace WorldsFirst
 {
-    using Microsoft.AspNetCore.Http;
-    using Microsoft.Azure.WebJobs;
-    using Microsoft.Azure.WebJobs.Extensions.Http;
-    using Microsoft.Extensions.Logging;
-    using Newtonsoft.Json.Linq;
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Net.Http;
-    using System.Text;
-    using System.Threading.Tasks;
-    using Twilio;
-    using Twilio.Rest.Api.V2010.Account;
-    using Twilio.TwiML;
-    using Twilio.Types;
-    using WorldsFirst.Schemas;
-
-    public class IHateNamingThings
+    public class AuTO
     {
         [FunctionName("HttpTriggerCSharp")]
         public static async Task<HttpResponseMessage> Run(
@@ -56,14 +56,14 @@ namespace WorldsFirst
 
             string tourneyId = Environment.GetEnvironmentVariable("ChallongeTournamentId");
             string apiKey = Environment.GetEnvironmentVariable("ChallongeApiKey");
-            TourneyDal tourneyDal = new TourneyDal(apiKey, tourneyId);
-            MongoDal mongoDal = new MongoDal();
+            var tourneyDal = new TourneyDal(apiKey, tourneyId);
+            var mongoDal = new MongoDal();
 
             Participant senderParticipant = await mongoDal.GetParticipantByPhoneNumberAsync(senderNumber);
 
             // get the sender's game
-            JArray openGamesForSender = await tourneyDal.GetOpenMatchByIdAsync(senderParticipant.ChallongeId);
-            JObject senderGame = (JObject)openGamesForSender.Single();
+            JArray openGamesForSender = await tourneyDal.GetOpenMatchesAsync(senderParticipant.ChallongeId);
+            var senderGame = (JObject)openGamesForSender.Single();
 
             string loserId;
             string orderedScore;

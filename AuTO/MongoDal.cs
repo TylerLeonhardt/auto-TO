@@ -1,17 +1,14 @@
-﻿using MongoDB.Driver;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Text;
-using WorldsFirst.Schemas;
-using System.Threading;
+using System.Linq;
 using System.Threading.Tasks;
 using AuTO.BsonSchema;
-using System.Linq;
 using MongoDB.Bson;
+using MongoDB.Driver;
+using WorldsFirst.Schemas;
 
 namespace WorldsFirst
 {
-
     public class MongoDal
     {
         MongoClient client;
@@ -62,9 +59,7 @@ namespace WorldsFirst
             var filter = Builders<MatchListBson>.Filter.Eq("_id", matches.Id);
             var update = Builders<MatchListBson>.Update.Set("matches", newMatchList);
 
-            UpdateResult result = await matchesCollection.UpdateOneAsync(filter, update);
-
-            return;
+            await matchesCollection.UpdateOneAsync(filter, update);
         }
     }
 }

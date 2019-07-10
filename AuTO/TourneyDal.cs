@@ -1,12 +1,11 @@
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Net.Http.Formatting;
+using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
+
 namespace WorldsFirst
 {
-    using System.Collections.Generic;
-    using System.Net.Http;
-    using System.Net.Http.Formatting;
-    using System.Threading.Tasks;
-    using Newtonsoft.Json;
-    using Newtonsoft.Json.Linq;
-
     class TourneyDal
     {
         static readonly IList<MediaTypeFormatter> Formatters = new[]
@@ -30,12 +29,11 @@ namespace WorldsFirst
         public async Task UpdateWinnerAsync(string matchId, string winnerId, string score)
         {
             string uri = $"https://api.challonge.com/v1/tournaments/{tourneyId}/matches/{matchId}.json?api_key={apiKey}&match[winner_id]={winnerId}&match[scores_csv]={score}";
-            HttpRequestMessage request = null;
-            HttpResponseMessage response = null;
+            var request = new HttpRequestMessage(HttpMethod.Put, uri);
+
             for(int i = 0; i <3; i++)
             {
-                request = new HttpRequestMessage(HttpMethod.Put, uri);
-                response = await client.SendAsync(request);
+                HttpResponseMessage response = await client.SendAsync(request);
                 if (response.IsSuccessStatusCode)
                 {
                     break;
@@ -43,31 +41,14 @@ namespace WorldsFirst
             }
         }
 
-        public async Task<JArray> GetOpenMatchesAsync()
+        public async Task<JArray> GetOpenMatchesAsync(string playerId = "")
         {
             string uri = $"https://api.challonge.com/v1/tournaments/{tourneyId}/matches.json?api_key={apiKey}&state=open";
-            HttpRequestMessage request = null;
+            uri += playerId == "" ? "" : $"&participant_id={playerId}";
+            var request = new HttpRequestMessage(HttpMethod.Get, uri);
             HttpResponseMessage response = null;
             for(int i = 0; i <3; i++)
             {
-                request = new HttpRequestMessage(HttpMethod.Get, uri);
-                response = await client.SendAsync(request);
-                if (response.IsSuccessStatusCode)
-                {
-                    break;
-                }
-            }
-            return JArray.Parse(await response.Content.ReadAsStringAsync());
-        }
-
-        public async Task<JArray> GetOpenMatchByIdAsync(string playerId)
-        {
-            string uri = $"https://api.challonge.com/v1/tournaments/{tourneyId}/matches.json?api_key={apiKey}&participant_id={playerId}&state=open";
-            HttpRequestMessage request = null;
-            HttpResponseMessage response = null;
-            for(int i = 0; i <3; i++)
-            {
-                request = new HttpRequestMessage(HttpMethod.Get, uri);
                 response = await client.SendAsync(request);
                 if (response.IsSuccessStatusCode)
                 {

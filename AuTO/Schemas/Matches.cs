@@ -6,8 +6,6 @@ namespace WorldsFirst.Schemas
 {
     public class Matches
     {
-        private List<string> _matchIds = new List<string>();
-
         public Matches()
         { }
 
@@ -19,7 +17,7 @@ namespace WorldsFirst.Schemas
 
         internal ObjectId Id { get; set; }
 
-        internal List<string> MatchIds => _matchIds;
+        internal List<string> MatchIds { get; } = new List<string>();
 
     }
 }
