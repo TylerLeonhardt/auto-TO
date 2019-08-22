@@ -33,7 +33,28 @@ namespace WorldsFirst
                 .ToDictionary(pair => Uri.UnescapeDataString(pair[0]).Replace("+", " "),
                               pair => Uri.UnescapeDataString(pair[1]).Replace("+", " "));
 
+            string tournamentOrganizerNumber = Environment.GetEnvironmentVariable("tournamentOrganizerNumber");
+            string tourneyId = Environment.GetEnvironmentVariable("ChallongeTournamentId");
+            string apiKey = Environment.GetEnvironmentVariable("ChallongeApiKey");
+
+            var tourneyDal = new TourneyDal(apiKey, tourneyId);
+            var mongoDal = new MongoDal();
+
             string senderNumber = "+" + formValues["From"].Substring(1);
+
+            if(formValues["Body"].Trim().ToLower() == "master message" && senderNumber == tournamentOrganizerNumber)
+            {
+                await UpdateAllPlayerChallongeIdsAsync(tourneyId, tourneyDal, mongoDal);
+                var message = new MessagingResponse()
+                    .Message($"Enjoy the tournament!  You should be ready to play.");
+                var messageTwiml = message.ToString();
+                messageTwiml = messageTwiml.Replace("utf-16", "utf-8");
+
+                return new HttpResponseMessage
+                {
+                    Content = new StringContent(messageTwiml.ToString(), Encoding.UTF8, "application/xml")
+                };
+            }
 
             if(formValues["Body"].Trim().ToLower() != "i won")
             {
@@ -53,12 +74,6 @@ namespace WorldsFirst
             var myNumber = new PhoneNumber(Environment.GetEnvironmentVariable("myNumber"));
 
             // lookup the sender
-
-            string tourneyId = Environment.GetEnvironmentVariable("ChallongeTournamentId");
-            string apiKey = Environment.GetEnvironmentVariable("ChallongeApiKey");
-            var tourneyDal = new TourneyDal(apiKey, tourneyId);
-            var mongoDal = new MongoDal();
-
             Participant senderParticipant = await mongoDal.GetParticipantByPhoneNumberAsync(senderNumber);
 
             // get the sender's game
@@ -141,7 +156,7 @@ namespace WorldsFirst
 
             foreach (JToken participant in participants)
             {
-                await mongoDal.UpdateUserChallongeId(participant["name"].ToString(), participant["id"].ToString());
+                await mongoDal.UpdateUserChallongeId(participant["participant"]["name"].ToString(), participant["participant"]["id"].ToString());
             }
         }
 
