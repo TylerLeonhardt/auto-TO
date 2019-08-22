@@ -134,6 +134,17 @@ namespace WorldsFirst
             };
         }
 
+        static async Task UpdateAllPlayerChallongeIdsAsync(
+            string tourneyId, TourneyDal tourneyDal, MongoDal mongoDal)
+        {
+            JArray participants = await tourneyDal.GetAllParticipantsAsync(tourneyId);
+
+            foreach (JToken participant in participants)
+            {
+                await mongoDal.UpdateUserChallongeId(participant["name"].ToString(), participant["id"].ToString());
+            }
+        }
+
         static async Task<JObject> GetNextMatchToPlayAsync(
             TourneyDal tourneyDal, HashSet<string> playedMatchIds)
         {

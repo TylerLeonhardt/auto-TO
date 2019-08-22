@@ -25,6 +25,16 @@ namespace WorldsFirst
             matchesCollection = db.GetCollection<MatchListBson>("MessagedMatches");
         }
 
+        public async Task<Participant> GetParticipantByNameAsync(string name)
+        {
+            var filter = Builders<ParticipantBson>.Filter.Eq("name", name);
+            var result = await participantCollection.Find(filter).ToListAsync();
+
+            ParticipantBson bson = result.FirstOrDefault();
+
+            return new Participant(bson);
+        }
+
         public async Task<Participant> GetParticipantByPhoneNumberAsync(string phoneNumber)
         {
             var filter = Builders<ParticipantBson>.Filter.Eq("phoneNumber", phoneNumber);
@@ -51,8 +61,17 @@ namespace WorldsFirst
             return new Matches(result.FirstOrDefault());
         }
 
+        public async Task UpdateUserChallongeId(string name, string challongeId)
+        {
+            var filter = Builders<ParticipantBson>.Filter.Eq("name", name);
+            var update = Builders<ParticipantBson>.Update.Set("challongeId", challongeId);
+
+            await participantCollection.UpdateOneAsync(filter, update);
+        }
+
         public async Task UpdateMatchListAsync(Matches matches, string newMatchId)
         {
+            // TODO: Remove race condition because it's only one object
             List<string> newMatchList = matches.MatchIds;
             newMatchList.Add(newMatchId);
 

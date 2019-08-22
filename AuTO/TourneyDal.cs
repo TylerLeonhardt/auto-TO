@@ -26,6 +26,24 @@ namespace WorldsFirst
             client.DefaultRequestHeaders.Add("Accept", "application/json");
         }
 
+        public async Task<JArray> GetAllParticipantsAsync(string tourneyId)
+        {
+            string uri = $"https://api.challonge.com/v1/tournaments/{tourneyId}/participants.json?api_key={apiKey}";
+            var request = new HttpRequestMessage(HttpMethod.Get, uri);
+
+            HttpResponseMessage response = null;
+            for(int i = 0; i <3; i++)
+            {
+                response = await client.SendAsync(request);
+                if (response.IsSuccessStatusCode)
+                {
+                    break;
+                }
+            }
+
+            return JArray.Parse(await response.Content.ReadAsStringAsync());
+        }
+
         public async Task UpdateWinnerAsync(string matchId, string winnerId, string score)
         {
             string uri = $"https://api.challonge.com/v1/tournaments/{tourneyId}/matches/{matchId}.json?api_key={apiKey}&match[winner_id]={winnerId}&match[scores_csv]={score}";
@@ -55,6 +73,7 @@ namespace WorldsFirst
                     break;
                 }
             }
+
             return JArray.Parse(await response.Content.ReadAsStringAsync());
         }
     }
